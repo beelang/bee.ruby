@@ -13,7 +13,7 @@ module Dragon
     end
 
     rule(:indentation) do
-      space.repeat(2,2)
+      space.repeat(2, 2).as(:indentation)
     end
 
     rule(:character) do
@@ -21,7 +21,7 @@ module Dragon
     end
 
     rule(:word) do
-      character.repeat(1).as(:word)
+      character.repeat(1)
     end
 
     rule(:string) do
@@ -29,27 +29,35 @@ module Dragon
     end
 
     rule(:definition) do
-      (word >> str(":") >> space >> expression).as(:definition)
+      (word.as(:name) >> str(":") >> space >> expression.as(:value))
+    end
+
+    rule(:argument) do
+      space >> expression >> space
     end
 
     rule(:arguments) do
-      space >> (((word >> space >> str(",")).repeat(1) >> space >> word) | word).as(:arguments) >> space
+      ((argument >> str(",")).repeat(1) >> argument) | argument
     end
 
     rule(:lookup) do
-      (word >> str("(") >> arguments.maybe >> str(")")).as(:lookup)
+      (word.as(:name) >> str("(") >> arguments.maybe.as(:arguments) >> str(")"))
+    end
+
+    rule(:lookups) do
+      ((lookup.as(:lookup) >> space).repeat(1) >> lookup.as(:lookup)) | lookup.as(:lookup)
     end
 
     rule(:expression) do
-      definition | lookup | word | string
+      (indentation.as(:indentation) | definition.as(:definition) | lookups | string | word.as(:atom)).repeat
     end
 
     rule(:expressions) do
-      (expression.as(:expression) >> newline)
+      (expression.as(:expression) >> newline).repeat
     end
 
     rule(:document) do
-      expressions.repeat(1).as(:line) >> eof
+      expressions.as(:expressions) >> eof
     end
 
     root(:document)

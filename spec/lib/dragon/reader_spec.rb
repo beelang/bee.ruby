@@ -39,13 +39,13 @@ RSpec.describe Dragon::Reader do
     end
   end
 
-  describe "#space" do
-    let(:space) do
-      reader.space
+  describe "#indentation" do
+    let(:indentation) do
+      reader.indentation
     end
 
-    it "matches space" do
-      expect(space).to parse(" ")
+    it "matches indentation" do
+      expect(indentation).to parse("  ")
     end
   end
 
@@ -404,6 +404,14 @@ RSpec.describe Dragon::Reader do
       expect(definition).to parse("word: \"a\"")
     end
 
+    it "matches a definition with a lookup" do
+      expect(definition).to parse("word: verb()")
+    end
+
+    it "matches a definition with a lookup that has values" do
+      expect(definition).to parse("word: verb( 1 , 2 )")
+    end
+
     it "doesn't match a definition with post-colon bad spacing" do
       expect(definition).to_not parse("word :\"a\"")
     end
@@ -419,11 +427,11 @@ RSpec.describe Dragon::Reader do
     end
 
     it "matches a single argument" do
-      expect(arguments).to parse(" 1 ")
+      expect(arguments).to parse(" num1: 1 ")
     end
 
     it "matches multiple arguments" do
-      expect(arguments).to parse(" 1 , 2 , 3")
+      expect(arguments).to parse(" num1: 1 , num2: 2 ")
     end
   end
 
@@ -437,15 +445,33 @@ RSpec.describe Dragon::Reader do
     end
 
     it "matches a lookup with a single numeric argument" do
-      expect(lookup).to parse("word( 1 )")
+      expect(lookup).to parse("word( num1: 1 )")
     end
 
-    it "matches a lookup with two numeric arguments" do
-      expect(lookup).to parse("word( 1 , 2 )")
+    it "matches a lookup with multiple numeric arguments" do
+      expect(lookup).to parse("word( num1: 1 , num2: 2 )")
+    end
+  end
+
+  describe "#expression" do
+    let(:expression) do
+      reader.expression
     end
 
-    it "matches a lookup with three numeric arguments" do
-      expect(lookup).to parse("word( 1 , 2 , 3 )")
+    it "matches definition with a lookup as the value" do
+      expect(expression).to parse("word: word1()")
+    end
+
+    it "matches identation followed by lookup no arguments" do
+      expect(expression).to parse("  word1()")
+    end
+
+    it "matches lookup chain with no arguments" do
+      expect(expression).to parse("word1() word2()")
+    end
+
+    it "matches lookup chain with a single numeric argument" do
+      expect(expression).to parse("word1( num1: 1 ) word2( num2: 2 )")
     end
   end
 end
