@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require "dragon"
+require "ap"
+require 'parslet/convenience'
+
+input = File.read(ARGV.first)
+reader = Dragon::Reader.new
+
+ap reader.parse_with_debug(input)

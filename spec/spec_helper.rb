@@ -3,4 +3,5 @@ CodeClimate::TestReporter.start
 
 require "pry"
 require "rspec"
-require "blankgem"
+require "parslet/rig/rspec"
+require "dragon"
