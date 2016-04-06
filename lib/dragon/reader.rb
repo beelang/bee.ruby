@@ -1,5 +1,6 @@
 module Dragon
   class Reader < Parslet::Parser
+    COMMENT_PREFIX = "#"
     rule(:eof) do
       any.absent?
     end
@@ -13,7 +14,7 @@ module Dragon
     end
 
     rule(:indentation) do
-      space.repeat(2, 2).as(:indentation)
+      space.repeat(2, 2)
     end
 
     rule(:character) do
@@ -24,40 +25,48 @@ module Dragon
       character.repeat(1)
     end
 
-    rule(:string) do
-      str('"') >> (str('\\') >> any | str('"').absent? >> any).repeat.as(:string) >> str('"')
+    rule(:text) do
+      str('"') >> (str('\\') >> any | str('"').absent? >> any).repeat.as(:text) >> str('"')
     end
 
     rule(:definition) do
       (word.as(:name) >> str(":") >> space >> expression.as(:value))
     end
 
-    rule(:argument) do
-      space >> expression >> space
+    rule(:sargument) do
+      space >> (lookups | text | word.as(:word)) >> space
     end
 
-    rule(:arguments) do
-      ((argument >> str(",")).repeat(1) >> argument) | argument
+    rule(:nargument) do
+      space >> definition >> space
+    end
+
+    rule(:narguments) do
+      ((nargument >> str(",")).repeat(1) >> nargument) | nargument
     end
 
     rule(:lookup) do
-      (word.as(:name) >> str("(") >> arguments.maybe.as(:arguments) >> str(")"))
+      (word.as(:name) >> str("(") >> (narguments.as(:narguments) | sargument.as(:sargument)).maybe.as(:value) >> str(")")).as(:lookup)
     end
 
     rule(:lookups) do
-      ((lookup.as(:lookup) >> space).repeat(1) >> lookup.as(:lookup)) | lookup.as(:lookup)
+      ((lookup >> space).repeat(1) >> lookup) | lookup
+    end
+
+    rule(:comment) do
+      (str(COMMENT_PREFIX) >> match["^\n"].repeat) | str(COMMENT_PREFIX)
     end
 
     rule(:expression) do
-      (indentation.as(:indentation) | definition.as(:definition) | lookups | string | word.as(:atom)).repeat
+      ((lookups >> space >> definition.as(:definition)) | lookups | definition.as(:definition) | text | word.as(:atom))
     end
 
-    rule(:expressions) do
-      (expression.as(:expression) >> newline).repeat
+    rule(:line) do
+      indentation.repeat.as(:indentation) >> (comment.as(:comment) | expression.as(:expression)).maybe >> newline
     end
 
     rule(:document) do
-      expressions.as(:expressions) >> eof
+      line.repeat(1)
     end
 
     root(:document)

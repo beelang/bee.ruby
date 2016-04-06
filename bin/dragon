@@ -2,9 +2,14 @@
 
 require "dragon"
 require "ap"
-require 'parslet/convenience'
+require "parslet/convenience"
+require "json"
 
 input = File.read(ARGV.first)
 reader = Dragon::Reader.new
+transformer = Dragon::Transformer.new
+ast = reader.parse_with_debug(input)
+render = transformer.apply(ast)
 
-ap reader.parse_with_debug(input)
+# ap ast
+ap render

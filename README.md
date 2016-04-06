@@ -13,7 +13,11 @@ dragon
   - [![Version](http://img.shields.io/gem/v/dragon.svg?style=flat-square)](https://rubygems.org/gems/dragon)
 
 
-TODO: Write a gem description
+Todo
+====
+
+  - [ ] transform `:indentation => []` into `:indentation => 0`
+  - [ ] transform `:indentation => "    "@102` into `:indentation => 2`
 
 
 Using
